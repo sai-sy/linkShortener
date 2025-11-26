@@ -39,6 +39,17 @@ migrate-down:
 migrate-create:
 	docker run -it --rm --network host --volume "$(PWD)/cmd/migrate/migrations:/migrations" migrate/migrate create -ext sql -dir /migrations "$(name)"
 
+app-up:
+	$(DC) up app
+
+app-build:
+	$(DC) build app
+
+app-reset:
+	$(DC) down app
+	$(DC) build app
+	$(DC) up app
+
 # -----------------------------------
 # Dev Environment
 # -----------------------------------
@@ -64,10 +75,6 @@ dev-down:
 ## Show logs for the app
 logs:
 	$(DC) logs -f app
-
-## Rebuild the dev app image
-app-build:
-	$(DC) build app
 
 SQLC_IMAGE = sqlc/sqlc:1.27.0  # pick your sqlc version
 

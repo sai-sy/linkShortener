@@ -9,12 +9,12 @@ import (
 	"context"
 )
 
-const getAllRouteMaps = `-- name: GetAllRouteMaps :many
+const getAllRoutemaps = `-- name: GetAllRoutemaps :many
 SELECT id, path, destination, created_at FROM public.routemap
 `
 
-func (q *Queries) GetAllRouteMaps(ctx context.Context) ([]Routemap, error) {
-	rows, err := q.db.QueryContext(ctx, getAllRouteMaps)
+func (q *Queries) GetAllRoutemaps(ctx context.Context) ([]Routemap, error) {
+	rows, err := q.db.Query(ctx, getAllRoutemaps)
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +32,41 @@ func (q *Queries) GetAllRouteMaps(ctx context.Context) ([]Routemap, error) {
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getRoutemap = `-- name: GetRoutemap :one
+SELECT id, path, destination, created_at
+FROM public.routemap
+WHERE path = $1
+LIMIT 1
+`
+
+func (q *Queries) GetRoutemap(ctx context.Context, path string) (Routemap, error) {
+	row := q.db.QueryRow(ctx, getRoutemap, path)
+	var i Routemap
+	err := row.Scan(
+		&i.ID,
+		&i.Path,
+		&i.Destination,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const insertRoutemap = `-- name: InsertRoutemap :exec
+INSERT INTO public.routemap (path, destination) VALUES ($1, $2)
+`
+
+type InsertRoutemapParams struct {
+	Path        string
+	Destination string
+}
+
+func (q *Queries) InsertRoutemap(ctx context.Context, arg InsertRoutemapParams) error {
+	_, err := q.db.Exec(ctx, insertRoutemap, arg.Path, arg.Destination)
+	return err
 }

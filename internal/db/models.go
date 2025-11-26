@@ -5,12 +5,12 @@
 package db
 
 import (
-	"database/sql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Routemap struct {
 	ID          int64
 	Path        string
 	Destination string
-	CreatedAt   sql.NullTime
+	CreatedAt   pgtype.Timestamptz
 }

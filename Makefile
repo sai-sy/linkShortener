@@ -37,7 +37,7 @@ migrate-down:
 
 ## Create a new migration using migrate CLI (requires migrate installed locally)
 migrate-create:
-	docker run -it --rm --network host --volume "$(PWD)/cmd/migrate:/migrations" migrate/migrate create -ext sql -dir /migrations "$(name)"
+	docker run -it --rm --network host --volume "$(PWD)/cmd/migrate/migrations:/migrations" migrate/migrate create -ext sql -dir /migrations "$(name)"
 
 # -----------------------------------
 # Dev Environment
@@ -49,8 +49,9 @@ dev-up:
 
 ## Start full dev env AND apply migrations
 dev:
-	$(DC) up -d db app
+	$(DC) up -d db 
 	$(DC) run --rm migrate
+	$(DC) up app
 
 ## Stop dev environment
 dev-down:
@@ -68,3 +69,10 @@ logs:
 app-build:
 	$(DC) build app
 
+SQLC_IMAGE = sqlc/sqlc:1.27.0  # pick your sqlc version
+
+sqlc:
+	docker run --rm \
+	  -v $(PWD):/src \
+	  -w /src \
+	  $(SQLC_IMAGE) generate

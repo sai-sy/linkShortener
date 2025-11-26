@@ -18,12 +18,14 @@ services:
   migrate:
     image: migrate/migrate
     container_name: linksh-migrate
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      migrate -path=/migrations
-              -database "${DATABASE_URL}" up
+    entrypoint:
+      - migrate
+      - -path=/migrations
+      - -database=${DATABASE_URL}
+    command:
+      - up
     volumes:
-      - ./cmd/migrate:/migrations
+      - ./cmd/migrate/migrations:/migrations
     depends_on:
       - db
 

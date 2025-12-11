@@ -14,7 +14,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(context.Background(), "postgres://postgres:postgres@db:5432/linkshort?sslmode=disable")
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -38,6 +38,7 @@ func main() {
 
 			routemap, err := queries.GetRoutemap(r.Context(), path)
 			if err != nil {
+				fmt.Println("woah error", err)
 				http.Error(w, "failed to load route map", http.StatusInternalServerError)
 				return
 			}

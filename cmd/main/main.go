@@ -9,9 +9,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/sai-sy/linkShortener/internal/db"
+	"github.com/sai-sy/linkShortener/internal/routes"
 )
 
 func main() {
+	fmt.Println("Entering main.main")
 	ctx := context.Background()
 
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))

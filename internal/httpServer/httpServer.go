@@ -3,9 +3,10 @@ package httpServer
 import (
 	"net/http"
 
+	apiv1 "github.com/sai-sy/linkShortener/internal/api/v1"
 	"github.com/sai-sy/linkShortener/internal/db"
-	apiv1 "github.com/sai-sy/linkShortener/internal/service/api/v1"
-	"github.com/sai-sy/linkShortener/internal/service/web"
+	"github.com/sai-sy/linkShortener/internal/web"
+	"github.com/sai-sy/linkShortener/internal/web/handlers"
 )
 
 type HTTPServer struct {
@@ -34,7 +35,7 @@ func (s *HTTPServer) Run() error {
 	apiV1Handler.RegisterRoutes(apiV1SubMux)
 	mux.Handle("/api/v1/", http.StripPrefix("/api/v1", apiV1SubMux))
 
-	webHandler := web.NewHandler()
+	webHandler := handlers.NewHandler()
 	webHandler.RegisterRoutes(mux)
 	return http.ListenAndServe(s.addr, mux)
 }

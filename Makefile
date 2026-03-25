@@ -42,6 +42,11 @@ migrate-create:
 app-up:
 	$(DC) up app
 
+## Start app with live reload (air)
+app-dev:
+	$(DC) build app
+	$(DC) up app
+
 app-build:
 	$(DC) build app
 

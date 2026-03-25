@@ -1,4 +1,4 @@
-package web
+package handlers
 
 import (
 	"net/http"
@@ -16,3 +16,5 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/login", h.LoginHandler)
 	mux.HandleFunc("/register", h.RegisterHandler)
 }
+
+

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/jackc/pgx/v5"
 	_ "github.com/joho/godotenv/autoload"
@@ -30,15 +29,6 @@ func connect(ctx context.Context) *db.Queries {
 func main() {
 	ctx := context.Background()
 	database := connect(ctx)
-	templatesDir := os.Getenv("TEMPLATES_DIR")
-	if templatesDir == "" {
-		fmt.Println("using fallback template directory")
-		templatesDir = filepath.Join("templates")
-	}
-
-	//routerCtx := context.WithValue(ctx, web.TemplatesDirKey, templatesDir)
-	//router := api.NewRouter(routerCtx, database)
-
 	server := httpServer.NewHTTPServer(":8080", database)
 	if err := server.Run(); err != nil {
 		fmt.Println("server error:", err)

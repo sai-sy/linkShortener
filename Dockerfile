@@ -5,8 +5,10 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+RUN go install github.com/air-verse/air@latest
+
 COPY . .
 
 WORKDIR /app/cmd/main
 
-CMD ["go", "run", "."]
+CMD ["air", "-c", "/app/.air.toml"]

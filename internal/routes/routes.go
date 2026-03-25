@@ -1,76 +1,54 @@
 package routes
 
 import (
-    "context"
     "fmt"
-    "html/template"
     "net/http"
-    "os"
-    "path/filepath"
 
-    "github.com/sai-sy/linkShortener/internal/api"
     "github.com/sai-sy/linkShortener/internal/db"
 )
 
-type contextKey string
+func RegisterRoutes(mux *http.ServeMux, queries *db.Queries) {
+    mux.HandleFunc("/api/routemap", func(w http.ResponseWriter, r *http.Request) {
+        switch r.Method {
+        case http.MethodGet:
+            path := r.URL.Query().Get("path")
+            if path == "" {
+                http.Error(w, "path is required", http.StatusBadRequest)
+                return
+            }
 
-const TemplatesDirKey contextKey = "templatesDir"
+            routemap, err := queries.GetRoutemap(r.Context(), path)
+            if err != nil {
+                fmt.Println("woah error", err)
+                http.Error(w, "failed to load route map", http.StatusInternalServerError)
+                return
+            }
 
-var defaultTemplatesDir = filepath.Join("internal", "routes", "templates")
+            fmt.Printf("Route map: %+v\n", routemap)
+            fmt.Fprintf(w, "Route map for %s -> %s\n", routemap.Path, routemap.Destination)
 
-type Page struct {
-    Title string
-    Body  []byte
-}
+        case http.MethodPost:
+            path := r.URL.Query().Get("path")
+            destination := r.URL.Query().Get("destination")
+            fmt.Println(path)
+            fmt.Println(destination)
+            if path == "" || destination == "" {
+                http.Error(w, "path and destination are required", http.StatusBadRequest)
+                return
+            }
 
-func templatesDirFromContext(ctx context.Context) string {
-    if ctx == nil {
-        return defaultTemplatesDir
-    }
-    if dir, ok := ctx.Value(TemplatesDirKey).(string); ok && dir != "" {
-        return dir
-    }
-    return defaultTemplatesDir
-}
+            if err := queries.InsertRoutemap(r.Context(), db.InsertRoutemapParams{
+                Path:        path,
+                Destination: destination,
+            }); err != nil {
+                http.Error(w, "failed to create route map", http.StatusInternalServerError)
+                return
+            }
 
-func loadPage(dir, title string) (*Page, error) {
-    filename := filepath.Join(dir, title+".html")
-    fmt.Println("loadPage filename:", filename)
-    body, err := os.ReadFile(filename)
-    if err != nil {
-        return nil, err
-    }
-    return &Page{Title: title, Body: body}, nil
-}
+            fmt.Fprintf(w, "Route map created for %s -> %s\n", path, destination)
 
-func renderTemplate(w http.ResponseWriter, dir, tmpl string, p *Page) {
-    t, err := template.ParseFiles(filepath.Join(dir, tmpl+".html"))
-    if err != nil {
-			fmt.Println(err)
-        http.Error(w, "failed to render template", http.StatusInternalServerError)
-        return
-    }
-    if err := t.Execute(w, p); err != nil {
-        http.Error(w, "template execution failed", http.StatusInternalServerError)
-    }
-}
-
-func NewRouter(ctx context.Context, queries *db.Queries) http.Handler {
-    mux := http.NewServeMux()
-
-    templateDir := templatesDirFromContext(ctx)
-
-    api.RegisterRoutes(mux, queries)
-
-    mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        title := "index"
-        p, err := loadPage(templateDir, title)
-        if err != nil {
-            p = &Page{Title: title, Body: []byte("cannot find")}
+        default:
+            http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
         }
-        fmt.Println("rendering page", title)
-        renderTemplate(w, templateDir, "index", p)
     })
-
-    return mux
 }

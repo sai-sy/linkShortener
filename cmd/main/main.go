@@ -3,75 +3,46 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/jackc/pgx/v5"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/sai-sy/linkShortener/internal/api"
 	"github.com/sai-sy/linkShortener/internal/db"
-	"github.com/sai-sy/linkShortener/internal/routes"
 )
 
-func main() {
-	fmt.Println("Entering main.main")
-	ctx := context.Background()
+func connect(ctx context.Context) *db.Queries {
+	database_url := os.Getenv("DATABASE_URL")
+	fmt.Println(database_url)
 
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	defer conn.Close(ctx)
 
-	queries := db.New(conn)
+	database := db.New(conn)
+	return database
+}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Hellooo World!\n")
-	})
+func main() {
+	ctx := context.Background()
+	database := connect(ctx)
+	templatesDir := os.Getenv("TEMPLATES_DIR")
+	if templatesDir == "" {
+		fmt.Println("using fallback template directory")
+		templatesDir = filepath.Join("templates")
+	}
 
-	http.HandleFunc("/routemap", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			path := r.URL.Query().Get("path")
-			if path == "" {
-				http.Error(w, "path is required", http.StatusBadRequest)
-				return
-			}
+	//routerCtx := context.WithValue(ctx, web.TemplatesDirKey, templatesDir)
+	//router := api.NewRouter(routerCtx, database)
 
-			routemap, err := queries.GetRoutemap(r.Context(), path)
-			if err != nil {
-				fmt.Println("woah error", err)
-				http.Error(w, "failed to load route map", http.StatusInternalServerError)
-				return
-			}
-
-			fmt.Printf("Route map: %+v\n", routemap)
-			fmt.Fprintf(w, "Route map for %s -> %s\n", routemap.Path, routemap.Destination)
-
-		case http.MethodPost:
-			path := r.URL.Query().Get("path")
-			destination := r.URL.Query().Get("destination")
-			fmt.Println(path)
-			fmt.Println(destination)
-			if path == "" || destination == "" {
-				http.Error(w, "path and destination are required", http.StatusBadRequest)
-				return
-			}
-
-			if err := queries.InsertRoutemap(r.Context(), db.InsertRoutemapParams{
-				Path:        path,
-				Destination: destination,
-			}); err != nil {
-				http.Error(w, "failed to create route map", http.StatusInternalServerError)
-				return
-			}
-
-			fmt.Fprintf(w, "Route map created for %s -> %s\n", path, destination)
-
-		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	http.ListenAndServe(":8080", nil)
+	server := api.NewAPIServer(":8080", database)
+	if err := server.Run(); err != nil {
+		fmt.Println("server error:", err)
+		os.Exit(1)
+	}
+	fmt.Println("Listening on :8080")
 }

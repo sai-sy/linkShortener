@@ -1,9 +1,10 @@
-package api
+package httpServer
 
 import (
 	"net/http"
 
 	"github.com/sai-sy/linkShortener/internal/db"
+	apiv1 "github.com/sai-sy/linkShortener/internal/service/api/v1"
 	"github.com/sai-sy/linkShortener/internal/service/web"
 )
 
@@ -71,20 +72,26 @@ func NewRouter(ctx context.Context, queries *db.Queries) http.Handler {
 }
 */
 
-type APIServer struct {
+type HTTPServer struct {
 	addr string
-	db *db.Queries
+	db   *db.Queries
 }
 
-func NewAPIServer(addr string, db *db.Queries) *APIServer {
-	return &APIServer{
+func NewHTTPServer(addr string, db *db.Queries) *HTTPServer {
+	return &HTTPServer{
 		addr: addr,
-		db: db,
+		db:   db,
 	}
 }
 
-func (s *APIServer) Run() error {
+func (s *HTTPServer) Run() error {
 	mux := http.NewServeMux()
+
+	apiV1SubMux := http.NewServeMux()
+	apiV1Handler := apiv1.NewHandler()
+	apiV1Handler.RegisterRoutes(apiV1SubMux)
+	mux.Handle("/api/v1/", http.StripPrefix("/api/v1", apiV1SubMux))
+
 	webHandler := web.NewHandler()
 	webHandler.RegisterRoutes(mux)
 	return http.ListenAndServe(s.addr, mux)

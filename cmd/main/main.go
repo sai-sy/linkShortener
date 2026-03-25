@@ -8,8 +8,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/sai-sy/linkShortener/internal/api"
 	"github.com/sai-sy/linkShortener/internal/db"
+	"github.com/sai-sy/linkShortener/internal/httpServer"
 )
 
 func connect(ctx context.Context) *db.Queries {
@@ -39,7 +39,7 @@ func main() {
 	//routerCtx := context.WithValue(ctx, web.TemplatesDirKey, templatesDir)
 	//router := api.NewRouter(routerCtx, database)
 
-	server := api.NewAPIServer(":8080", database)
+	server := httpServer.NewHTTPServer(":8080", database)
 	if err := server.Run(); err != nil {
 		fmt.Println("server error:", err)
 		os.Exit(1)

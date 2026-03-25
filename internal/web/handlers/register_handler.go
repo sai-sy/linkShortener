@@ -12,7 +12,20 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		email := r.FormValue("email")
-		fmt.Printf("register submission: email=%s\n", email)
+		password := r.FormValue("password")
+		confirmPassword := r.FormValue("confirm_password")
+		if password != confirmPassword {
+			http.Error(w, "passwords do not match", http.StatusBadRequest)
+			return
+		}
+
+		user, err := h.auth.Register(r.Context(), email, password)
+		if err != nil {
+			fmt.Printf("register error: %v\n", err)
+			http.Error(w, "failed to register", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("register submission: email=%s user_id=%v\n", user.Email, user.ID)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}

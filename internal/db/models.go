@@ -8,6 +8,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AuthUser struct {
+	ID           pgtype.UUID
+	Email        string
+	PasswordHash string
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
+
+type Profile struct {
+	UserID    pgtype.UUID
+	Firstname pgtype.Text
+	Surname   pgtype.Text
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
 type Routemap struct {
 	ID          int64
 	Path        string

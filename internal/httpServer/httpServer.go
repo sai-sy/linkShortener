@@ -35,7 +35,7 @@ func (s *HTTPServer) Run() error {
 	apiV1Handler.RegisterRoutes(apiV1SubMux)
 	mux.Handle("/api/v1/", http.StripPrefix("/api/v1", apiV1SubMux))
 
-	webHandler := handlers.NewHandler()
+	webHandler := handlers.NewHandler(s.db)
 	webHandler.RegisterRoutes(mux)
 	return http.ListenAndServe(s.addr, mux)
 }

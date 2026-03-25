@@ -7,7 +7,59 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createAuthUser = `-- name: CreateAuthUser :one
+INSERT INTO auth.users (id, email, password_hash)
+VALUES ($1, $2, $3)
+RETURNING id, email, password_hash, created_at, updated_at
+`
+
+type CreateAuthUserParams struct {
+	ID           pgtype.UUID
+	Email        string
+	PasswordHash string
+}
+
+func (q *Queries) CreateAuthUser(ctx context.Context, arg CreateAuthUserParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, createAuthUser, arg.ID, arg.Email, arg.PasswordHash)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createProfile = `-- name: CreateProfile :one
+INSERT INTO public.profile (user_id, firstname, surname)
+VALUES ($1, $2, $3)
+RETURNING user_id, firstname, surname, created_at, updated_at
+`
+
+type CreateProfileParams struct {
+	UserID    pgtype.UUID
+	Firstname pgtype.Text
+	Surname   pgtype.Text
+}
+
+func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (Profile, error) {
+	row := q.db.QueryRow(ctx, createProfile, arg.UserID, arg.Firstname, arg.Surname)
+	var i Profile
+	err := row.Scan(
+		&i.UserID,
+		&i.Firstname,
+		&i.Surname,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
 
 const getAllRoutemaps = `-- name: GetAllRoutemaps :many
 SELECT id, path, destination, created_at FROM public.routemap
@@ -36,6 +88,26 @@ func (q *Queries) GetAllRoutemaps(ctx context.Context) ([]Routemap, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getAuthUserByEmail = `-- name: GetAuthUserByEmail :one
+SELECT id, email, password_hash, created_at, updated_at
+FROM auth.users
+WHERE email = $1
+LIMIT 1
+`
+
+func (q *Queries) GetAuthUserByEmail(ctx context.Context, email string) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getAuthUserByEmail, email)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getRoutemap = `-- name: GetRoutemap :one

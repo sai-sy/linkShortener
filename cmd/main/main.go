@@ -11,7 +11,8 @@ import (
 	"github.com/sai-sy/linkShortener/internal/httpServer"
 )
 
-func connect(ctx context.Context) *db.Queries {
+func main() {
+	ctx := context.Background()
 	database_url := os.Getenv("DATABASE_URL")
 	fmt.Println(database_url)
 
@@ -21,14 +22,7 @@ func connect(ctx context.Context) *db.Queries {
 		os.Exit(1)
 	}
 	defer conn.Close(ctx)
-
 	database := db.New(conn)
-	return database
-}
-
-func main() {
-	ctx := context.Background()
-	database := connect(ctx)
 	server := httpServer.NewHTTPServer(":8080", database)
 	if err := server.Run(); err != nil {
 		fmt.Println("server error:", err)

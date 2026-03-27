@@ -17,6 +17,8 @@ func NewHandler(db *db.Queries) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", h.IndexHandler)
-	mux.HandleFunc("/login", h.LoginHandler)
+	mux.HandleFunc("GET /login", h.LoginHandlerGET)
+	mux.HandleFunc("POST /login", h.LoginHandlerPOST)
 	mux.HandleFunc("/register", h.RegisterHandler)
+	mux.HandleFunc("/protected", h.ProtectedHandler)
 }

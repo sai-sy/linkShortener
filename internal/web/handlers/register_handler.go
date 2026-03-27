@@ -19,7 +19,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, err := h.auth.Register(r.Context(), email, password)
+		user, err := h.auth.Register(r.Context(), w, email, password)
 		if err != nil {
 			fmt.Printf("register error: %v\n", err)
 			http.Error(w, "failed to register", http.StatusBadRequest)

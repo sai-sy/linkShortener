@@ -11,6 +11,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createAuthSession = `-- name: CreateAuthSession :exec
+INSERT INTO auth.session (user_id, session_token, csrf_token)
+VALUES ($1, $2, $3)
+`
+
+type CreateAuthSessionParams struct {
+	UserID       pgtype.UUID
+	SessionToken string
+	CsrfToken    string
+}
+
+func (q *Queries) CreateAuthSession(ctx context.Context, arg CreateAuthSessionParams) error {
+	_, err := q.db.Exec(ctx, createAuthSession, arg.UserID, arg.SessionToken, arg.CsrfToken)
+	return err
+}
+
 const createAuthUser = `-- name: CreateAuthUser :one
 INSERT INTO auth.users (id, email, password_hash)
 VALUES ($1, $2, $3)
@@ -88,6 +104,32 @@ func (q *Queries) GetAllRoutemaps(ctx context.Context) ([]Routemap, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getAuthSessionByToken = `-- name: GetAuthSessionByToken :one
+SELECT session_token, user_id, csrf_token, created_at
+FROM auth.session
+WHERE session_token = $1
+LIMIT 1
+`
+
+type GetAuthSessionByTokenRow struct {
+	SessionToken string
+	UserID       pgtype.UUID
+	CsrfToken    string
+	CreatedAt    pgtype.Timestamptz
+}
+
+func (q *Queries) GetAuthSessionByToken(ctx context.Context, sessionToken string) (GetAuthSessionByTokenRow, error) {
+	row := q.db.QueryRow(ctx, getAuthSessionByToken, sessionToken)
+	var i GetAuthSessionByTokenRow
+	err := row.Scan(
+		&i.SessionToken,
+		&i.UserID,
+		&i.CsrfToken,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getAuthUserByEmail = `-- name: GetAuthUserByEmail :one

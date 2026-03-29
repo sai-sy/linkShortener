@@ -11,7 +11,6 @@ func (h *Handler) LoginHandlerGET(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		p = &Page{Title: title, Body: []byte("cannot find")}
 	}
-	fmt.Println("rendering page", title)
 	renderTemplate(w, title, p)
 }
 

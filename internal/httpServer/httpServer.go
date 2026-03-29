@@ -5,6 +5,7 @@ import (
 
 	apiv1 "github.com/sai-sy/linkShortener/internal/api/v1"
 	"github.com/sai-sy/linkShortener/internal/db"
+	"github.com/sai-sy/linkShortener/internal/middleware"
 	"github.com/sai-sy/linkShortener/internal/web"
 	"github.com/sai-sy/linkShortener/internal/web/handlers"
 )
@@ -37,5 +38,10 @@ func (s *HTTPServer) Run() error {
 
 	webHandler := handlers.NewHandler(s.db)
 	webHandler.RegisterRoutes(mux)
-	return http.ListenAndServe(s.addr, mux)
+
+	middleware := middleware.CreateStack(
+		middleware.Logging,
+	)
+
+	return http.ListenAndServe(s.addr, middleware(mux))
 }

@@ -3,6 +3,7 @@
 # -----------------------------------
 
 DC = docker compose
+PROJECT = $(notdir $(PWD))
 
 # -----------------------------------
 # Database Controls
@@ -18,7 +19,8 @@ db-down:
 
 ## Completely destroy the DB volume (DANGEROUS - wipes all data)
 db-reset:
-	$(DC) down -v
+	$(DC) down -v --remove-orphans
+	-@docker volume rm -f $(PROJECT)_db_data
 	$(DC) up -d db
 	sleep 3
 	$(DC) run --rm migrate
@@ -39,11 +41,12 @@ migrate-down:
 migrate-create:
 	docker run -it --rm --network host --volume "$(PWD)/cmd/migrate/migrations:/migrations" migrate/migrate create -ext sql -dir /migrations "$(name)"
 
+## Run app container (no build)
 app-up:
 	$(DC) up app
 
-## Start app with live reload (air)
-app-dev:
+## Build and run app container
+app-run:
 	$(DC) build app
 	$(DC) up app
 
@@ -59,13 +62,14 @@ app-reset:
 # Dev Environment
 # -----------------------------------
 
-## Start full development environment (db + app)
+## Start full development environment (db + app) without build
 dev-up:
 	$(DC) up -d db app
 
-## Start full dev env AND apply migrations
-dev:
-	$(DC) up -d db 
+## Build and run full dev env AND apply migrations
+dev-run:
+	$(DC) build app
+	$(DC) up -d db
 	$(DC) run --rm migrate
 	$(DC) up app
 

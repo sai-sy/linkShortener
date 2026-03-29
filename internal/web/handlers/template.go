@@ -20,7 +20,6 @@ const TemplatesDirKey contextKey = "templatesDir"
 
 func loadPage(title string) (*Page, error) {
 	filename := title + ".html"
-	fmt.Println("loadPage filename:", filename)
 	body, err := fs.ReadFile(templates.FS(), filename)
 	if err != nil {
 		return nil, err

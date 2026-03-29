@@ -9,6 +9,6 @@ RUN go install github.com/air-verse/air@latest
 
 COPY . .
 
-WORKDIR /app/cmd/main
+EXPOSE 8080
 
 CMD ["air", "-c", "/app/.air.toml"]

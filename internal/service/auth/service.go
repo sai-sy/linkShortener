@@ -116,23 +116,25 @@ func (s *Service) Register(ctx context.Context, w http.ResponseWriter, email, pa
 	return user, nil
 }
 
-func (s *Service) Authenticate(ctx context.Context, r *http.Request) (db.AuthSession, error) {
+func (s *Service) Authenticate(ctx context.Context, r *http.Request) (db.GetAuthSessionByTokenRow, error) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
-		return db.AuthSession{}, ErrInvalidSession
+		return db.GetAuthSessionByTokenRow{}, ErrInvalidSession
 	}
 
 	session, err := s.db.GetAuthSessionByToken(ctx, cookie.Value)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return db.AuthSession{}, ErrInvalidSession
+			return db.GetAuthSessionByTokenRow{}, ErrInvalidSession
 		}
-		return db.AuthSession{}, err
+		return db.GetAuthSessionByTokenRow{}, err
 	}
 
-	csrfToken := r.Header.Get("X-CSRF-Token")
-	if csrfToken == "" || csrfToken != session.CsrfToken {
-		return db.AuthSession{}, ErrInvalidCSRF
+	if r.Method != http.MethodGet && r.Method != http.MethodHead && r.Method != http.MethodOptions {
+		csrfToken := r.Header.Get("X-CSRF-Token")
+		if csrfToken == "" || csrfToken != session.CsrfToken {
+			return db.GetAuthSessionByTokenRow{}, ErrInvalidCSRF
+		}
 	}
 
 	return session, nil

@@ -6,7 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 
-	"github.com/sai-sy/linkShortener/internal/web/templates"
+	"github.com/sai-sy/linkShortener/web/app/templates"
 )
 
 type Page struct {

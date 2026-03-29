@@ -3,7 +3,6 @@ package httpServer
 import (
 	"net/http"
 
-	apiv1 "github.com/sai-sy/linkShortener/internal/api/v1"
 	"github.com/sai-sy/linkShortener/internal/db"
 	"github.com/sai-sy/linkShortener/internal/middleware"
 	"github.com/sai-sy/linkShortener/internal/web"
@@ -30,11 +29,6 @@ func (s *HTTPServer) Run() error {
 		return err
 	}
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticRoot))))
-
-	apiV1SubMux := http.NewServeMux()
-	apiV1Handler := apiv1.NewHandler()
-	apiV1Handler.RegisterRoutes(apiV1SubMux)
-	mux.Handle("/api/v1/", http.StripPrefix("/api/v1", apiV1SubMux))
 
 	webHandler := handlers.NewHandler(s.db)
 	webHandler.RegisterRoutes(mux)

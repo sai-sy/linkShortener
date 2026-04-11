@@ -7,19 +7,13 @@ import (
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		title := "404"
-		p, err := loadPage(title)
-		if err != nil {
-			p = &Page{Title: title, Body: []byte("cannot find")}
-		}
+		p, _ := h.buildPageData(r, title)
 		w.WriteHeader(http.StatusNotFound)
 		renderTemplate(w, title, p)
 		return
 	}
 
 	title := "index"
-	p, err := loadPage(title)
-	if err != nil {
-		p = &Page{Title: title, Body: []byte("cannot find")}
-	}
+	p, _ := h.buildPageData(r, title)
 	renderTemplate(w, title, p)
 }

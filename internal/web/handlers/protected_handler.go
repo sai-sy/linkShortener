@@ -10,15 +10,11 @@ func (h *Handler) ProtectedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.auth.Authenticate(r.Context(), r); err != nil {
+	p, session := h.buildPageData(r, "protected")
+	if session == nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	title := "protected"
-	p, err := loadPage(title)
-	if err != nil {
-		p = &Page{Title: title, Body: []byte("cannot find")}
-	}
-	renderTemplate(w, title, p)
+	renderTemplate(w, "protected", p)
 }

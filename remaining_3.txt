@@ -1,0 +1,6 @@
+clipr
+trimr
+trimz
+pingr
+pingz
+zapr

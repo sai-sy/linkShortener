@@ -10,8 +10,10 @@ import (
 )
 
 type Page struct {
-	Title string
-	Body  []byte
+	Title         string
+	Body          []byte
+	Authenticated bool
+	ProfileURL    string
 }
 
 type contextKey string
@@ -28,13 +30,13 @@ func loadPage(title string) (*Page, error) {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	t, err := template.ParseFS(templates.FS(), tmpl+".html")
+	t, err := template.ParseFS(templates.FS(), "base.html", tmpl+".html")
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := t.Execute(w, p); err != nil {
+	if err := t.ExecuteTemplate(w, "base", p); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

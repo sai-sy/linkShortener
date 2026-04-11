@@ -34,19 +34,11 @@ func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 			SameSite: http.SameSiteLaxMode,
 		})
 
-		title := "logout"
-		p, pageErr := loadPage(title)
-		if pageErr != nil {
-			p = &Page{Title: title, Body: []byte("cannot find")}
-		}
-		renderTemplate(w, title, p)
+		p := &Page{Title: "logout"}
+		renderTemplate(w, "logout", p)
 		return
 	}
 
-	title := "logout_guest"
-	p, pageErr := loadPage(title)
-	if pageErr != nil {
-		p = &Page{Title: title, Body: []byte("cannot find")}
-	}
-	renderTemplate(w, title, p)
+	p := &Page{Title: "logout_guest"}
+	renderTemplate(w, "logout_guest", p)
 }

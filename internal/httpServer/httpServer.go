@@ -31,18 +31,15 @@ func (s *HTTPServer) Run() error {
 	}
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticRoot))))
 
-	publicWebMux := http.NewServeMux()
 	publicWebHandler := handlers.NewHandler(s.db)
-	publicWebHandler.RegisterRoutes(publicWebMux, publicWebHandler.PublicRoutes())
+	publicWebHandler.RegisterRoutes(mux, publicWebHandler.PublicRoutes())
 
-	privateWebMux := http.NewServeMux()
 	privateWebHandler := handlers.NewHandler(s.db)
-	privateWebHandler.RegisterRoutes(privateWebMux, privateWebHandler.PrivateRoutes())
 	auth.SetDefaultService(s.db)
 	privateWebMiddleware := middleware.CreateStack(middleware.RequireAuth)
-
-	mux.Handle("/", privateWebMiddleware(privateWebMux))
-	mux.Handle("/", publicWebMux)
+	for _, route := range privateWebHandler.PrivateRoutes() {
+		mux.Handle(route.Pattern, privateWebMiddleware(http.HandlerFunc(route.Handler)))
+	}
 	middleware := middleware.CreateStack(
 		middleware.Logging,
 	)

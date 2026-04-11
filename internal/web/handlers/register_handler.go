@@ -22,7 +22,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		user, err := h.auth.Register(r.Context(), w, email, password)
 		if err != nil {
 			fmt.Printf("register error: %v\n", err)
-			http.Error(w, "failed to register", http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		fmt.Printf("register submission: email=%s user_id=%v\n", user.Email, user.ID)
@@ -35,9 +35,6 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := "register"
-	p, err := loadPage(title)
-	if err != nil {
-		p = &Page{Title: title, Body: []byte("cannot find")}
-	}
+	p, _ := h.buildPageData(r, title)
 	renderTemplate(w, title, p)
 }

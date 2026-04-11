@@ -24,6 +24,7 @@ func NewHandler(db *db.Queries) *Handler {
 func (h *Handler) PrivateRoutes() []Route {
 	return []Route{
 		{Pattern: "/protected", Handler: h.ProtectedHandler},
+		{Pattern: "/profile/", Handler: h.ProfileHandler},
 		{Pattern: "/logout", Handler: h.LogoutHandler},
 	}
 }
@@ -37,7 +38,6 @@ func (h *Handler) PublicRoutes() []Route {
 		{Pattern: "/register", Handler: h.RegisterHandler},
 	}
 }
-
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux, routes []Route) {
 	for _, route := range routes {

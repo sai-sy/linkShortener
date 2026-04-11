@@ -66,7 +66,7 @@ func (h *Handler) CreateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/routemap", http.StatusSeeOther)
 }
 
 func (h *Handler) UpdateRoutemapHandler(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +126,7 @@ func (h *Handler) UpdateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/routemap", http.StatusSeeOther)
 }
 
 func (h *Handler) ListRoutemapHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,6 +174,7 @@ func (h *Handler) ListRoutemapHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.Routemaps = routemaps
+	p.Page = page
 	renderTemplate(w, "routemap", p)
 }
 

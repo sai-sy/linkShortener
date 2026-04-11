@@ -3,14 +3,6 @@
   {{if .Authenticated}}
     <p>You are authenticated.</p>
     <p>Check out your shortened links: <a href="/routemap">My Routemaps</a></p>
-    <h2>Create Routemap</h2>
-    <form method="post" action="/routemap">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <label for="destination">Destination</label>
-      <input type="text" id="destination" name="destination" required>
-
-      <button type="submit">Create</button>
-    </form>
   {{else}}
     <p>You are not authenticated.</p>
   {{end}}

@@ -23,7 +23,7 @@
         <tr>
           <td>{{.ID}}</td>
           <td>{{.WorkspaceName}}</td>
-          <td>{{.Path}}</td>
+          <td><a href="/{{.Path}}">{{.Path}}</a></td>
           <td>
             <form method="post" action="/routemap/update">
               <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
@@ -41,4 +41,10 @@
       {{end}}
     </tbody>
   </table>
+  <div>
+    {{if gt .Page 1}}
+      <a href="/routemap?page={{sub .Page 1}}">Previous</a>
+    {{end}}
+    <a href="/routemap?page={{add .Page 1}}">Next</a>
+  </div>
 {{end}}

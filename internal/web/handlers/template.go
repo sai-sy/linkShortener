@@ -17,6 +17,7 @@ type Page struct {
 	ProfileURL    string
 	Routemaps     []db.GetRoutemapsPageRow
 	CSRFToken     string
+	Page          int
 }
 
 type contextKey string
@@ -33,7 +34,12 @@ func loadPage(title string) (*Page, error) {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	t, err := template.ParseFS(templates.FS(), "base.html", tmpl+".html")
+	funcs := template.FuncMap{
+		"add": func(a, b int) int { return a + b },
+		"sub": func(a, b int) int { return a - b },
+	}
+	base := template.New("base.html").Funcs(funcs)
+	t, err := base.ParseFS(templates.FS(), "base.html", tmpl+".html")
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

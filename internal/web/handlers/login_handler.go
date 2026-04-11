@@ -17,6 +17,13 @@ func (h *Handler) LoginHandlerPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	email := r.FormValue("email")
-	fmt.Printf("login submissionsss: email=%s\n", email)
+	password := r.FormValue("password")
+	user, err := h.auth.Login(r.Context(), w, email, password)
+	if err != nil {
+		fmt.Printf("login error: %v\n", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	fmt.Printf("login submission: email=%s user_id=%v\n", user.Email, user.ID)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

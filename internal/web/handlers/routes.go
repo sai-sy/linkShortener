@@ -30,6 +30,7 @@ func NewHandler(db *db.Queries, conn *pgx.Conn) *Handler {
 
 func (h *Handler) PrivateRoutes() []Route {
 	return []Route{
+		{Pattern: "GET /routemap", Handler: h.ListRoutemapHandler},
 		{Pattern: "POST /routemap", Handler: h.CreateRoutemapHandler},
 		{Pattern: "POST /routemap/update", Handler: h.UpdateRoutemapHandler},
 		{Pattern: "/profile/", Handler: h.ProfileHandler},

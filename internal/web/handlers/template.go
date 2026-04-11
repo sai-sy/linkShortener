@@ -15,7 +15,7 @@ type Page struct {
 	Body          []byte
 	Authenticated bool
 	ProfileURL    string
-	Routemaps     []db.Routemap
+	Routemaps     []db.GetRoutemapsPageRow
 	CSRFToken     string
 }
 

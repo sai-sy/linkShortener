@@ -27,9 +27,6 @@ BEGIN
 END;
 $$;
 
-ALTER TABLE public.routemap
-  ALTER COLUMN path DROP NOT NULL;
-
 CREATE OR REPLACE FUNCTION public.set_routemap_path()
 RETURNS trigger
 LANGUAGE plpgsql

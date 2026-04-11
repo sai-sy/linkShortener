@@ -5,7 +5,7 @@ DROP POLICY IF EXISTS routemap_select ON public.routemap;
 
 ALTER TABLE public.routemap DISABLE ROW LEVEL SECURITY;
 
-DROP FUNCTION IF EXISTS public.authorize(uuid, uuid, text);
+DROP FUNCTION IF EXISTS public.authorize(bigint, bigint, text);
 
 DROP INDEX IF EXISTS routemap_workspace_id_idx;
 

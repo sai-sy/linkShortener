@@ -17,7 +17,7 @@ VALUES ($1, $2, $3)
 `
 
 type CreateAuthSessionParams struct {
-	UserID       pgtype.UUID
+	UserID       int64
 	SessionToken string
 	CsrfToken    string
 }
@@ -28,19 +28,18 @@ func (q *Queries) CreateAuthSession(ctx context.Context, arg CreateAuthSessionPa
 }
 
 const createAuthUser = `-- name: CreateAuthUser :one
-INSERT INTO auth.users (id, email, password_hash)
-VALUES ($1, $2, $3)
+INSERT INTO auth.users (email, password_hash)
+VALUES ($1, $2)
 RETURNING id, email, password_hash, created_at, updated_at
 `
 
 type CreateAuthUserParams struct {
-	ID           pgtype.UUID
 	Email        string
 	PasswordHash string
 }
 
 func (q *Queries) CreateAuthUser(ctx context.Context, arg CreateAuthUserParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, createAuthUser, arg.ID, arg.Email, arg.PasswordHash)
+	row := q.db.QueryRow(ctx, createAuthUser, arg.Email, arg.PasswordHash)
 	var i AuthUser
 	err := row.Scan(
 		&i.ID,
@@ -59,7 +58,7 @@ RETURNING user_id, firstname, surname, created_at, updated_at
 `
 
 type CreateProfileParams struct {
-	UserID    pgtype.UUID
+	UserID    int64
 	Firstname pgtype.Text
 	Surname   pgtype.Text
 }
@@ -83,7 +82,7 @@ VALUES ($1, $2, $3)
 `
 
 type CreateRolePermissionParams struct {
-	WorkspaceID pgtype.UUID
+	WorkspaceID int64
 	Role        string
 	Permission  string
 }
@@ -117,8 +116,8 @@ VALUES ($1, $2, $3)
 `
 
 type CreateWorkspaceMemberParams struct {
-	WorkspaceID pgtype.UUID
-	ProfileID   pgtype.UUID
+	WorkspaceID int64
+	ProfileID   int64
 	Role        string
 }
 
@@ -166,7 +165,7 @@ LIMIT 1
 
 type GetAuthSessionByTokenRow struct {
 	SessionToken string
-	UserID       pgtype.UUID
+	UserID       int64
 	CsrfToken    string
 	CreatedAt    pgtype.Timestamptz
 }
@@ -212,13 +211,13 @@ LIMIT 1
 
 type GetRoutemapRow struct {
 	ID          int64
-	Path        pgtype.Text
+	Path        string
 	Destination string
-	WorkspaceID pgtype.UUID
+	WorkspaceID int64
 	CreatedAt   pgtype.Timestamptz
 }
 
-func (q *Queries) GetRoutemap(ctx context.Context, path pgtype.Text) (GetRoutemapRow, error) {
+func (q *Queries) GetRoutemap(ctx context.Context, path string) (GetRoutemapRow, error) {
 	row := q.db.QueryRow(ctx, getRoutemap, path)
 	var i GetRoutemapRow
 	err := row.Scan(
@@ -231,6 +230,60 @@ func (q *Queries) GetRoutemap(ctx context.Context, path pgtype.Text) (GetRoutema
 	return i, err
 }
 
+const getRoutemapsPage = `-- name: GetRoutemapsPage :many
+SELECT r.id,
+       r.path,
+       r.destination,
+       r.workspace_id,
+       w.name AS workspace_name,
+       r.created_at
+FROM public.routemap r
+JOIN public.workspace w ON w.id = r.workspace_id
+ORDER BY r.id DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetRoutemapsPageParams struct {
+	Limit  int32
+	Offset int32
+}
+
+type GetRoutemapsPageRow struct {
+	ID            int64
+	Path          string
+	Destination   string
+	WorkspaceID   int64
+	WorkspaceName string
+	CreatedAt     pgtype.Timestamptz
+}
+
+func (q *Queries) GetRoutemapsPage(ctx context.Context, arg GetRoutemapsPageParams) ([]GetRoutemapsPageRow, error) {
+	rows, err := q.db.Query(ctx, getRoutemapsPage, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRoutemapsPageRow
+	for rows.Next() {
+		var i GetRoutemapsPageRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Path,
+			&i.Destination,
+			&i.WorkspaceID,
+			&i.WorkspaceName,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getWorkspaceByProfile = `-- name: GetWorkspaceByProfile :one
 SELECT w.id, w.name, w.created_at, w.updated_at
 FROM public.workspace w
@@ -240,7 +293,7 @@ ORDER BY w.created_at
 LIMIT 1
 `
 
-func (q *Queries) GetWorkspaceByProfile(ctx context.Context, profileID pgtype.UUID) (Workspace, error) {
+func (q *Queries) GetWorkspaceByProfile(ctx context.Context, profileID int64) (Workspace, error) {
 	row := q.db.QueryRow(ctx, getWorkspaceByProfile, profileID)
 	var i Workspace
 	err := row.Scan(
@@ -259,7 +312,7 @@ VALUES ($1, $2)
 
 type InsertRoutemapParams struct {
 	Destination string
-	WorkspaceID pgtype.UUID
+	WorkspaceID int64
 }
 
 func (q *Queries) InsertRoutemap(ctx context.Context, arg InsertRoutemapParams) error {

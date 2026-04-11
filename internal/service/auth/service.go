@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/sai-sy/linkShortener/internal/db"
@@ -64,9 +63,7 @@ func (s *Service) Register(ctx context.Context, w http.ResponseWriter, email, pa
 		return db.AuthUser{}, err
 	}
 
-	userID := uuid.New()
 	user, err := s.db.CreateAuthUser(ctx, db.CreateAuthUserParams{
-		ID:           pgtype.UUID{Bytes: userID, Valid: true},
 		Email:        trimmedEmail,
 		PasswordHash: string(hashBytes),
 	})

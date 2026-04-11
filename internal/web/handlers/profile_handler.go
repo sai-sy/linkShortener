@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 func (h *Handler) ProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +24,7 @@ func (h *Handler) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profileID, err := uuid.Parse(profileIDStr)
+	profileID, err := strconv.ParseInt(profileIDStr, 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -36,14 +36,9 @@ func (h *Handler) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !session.UserID.Valid {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
-	sessionID, err := uuid.FromBytes(session.UserID.Bytes[:])
-	if err != nil || sessionID != profileID {
-		http.Error(w, "forbidden", http.StatusForbidden)
+	if session.UserID != profileID {
+		err := errors.New("forbidden")
+		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 

@@ -1,0 +1,44 @@
+{{define "content"}}
+  <h1>My Routemaps</h1>
+  <h2>Create Routemap</h2>
+  <form method="post" action="/routemap">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <label for="destination">Destination</label>
+    <input type="text" id="destination" name="destination" required>
+
+    <button type="submit">Create</button>
+  </form>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Workspace</th>
+        <th>Path</th>
+        <th>Destination</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Routemaps}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{.WorkspaceName}}</td>
+          <td>{{.Path}}</td>
+          <td>
+            <form method="post" action="/routemap/update">
+              <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <input type="text" name="destination" value="{{.Destination}}" required>
+              <button type="submit">Update</button>
+            </form>
+          </td>
+          <td>{{.CreatedAt.Time}}</td>
+        </tr>
+      {{else}}
+        <tr>
+          <td colspan="5">No routemaps found.</td>
+        </tr>
+      {{end}}
+    </tbody>
+  </table>
+{{end}}

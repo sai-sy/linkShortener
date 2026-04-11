@@ -10,13 +10,13 @@ import (
 
 type AuthSession struct {
 	SessionToken string
-	UserID       pgtype.UUID
+	UserID       int64
 	CreatedAt    pgtype.Timestamptz
 	CsrfToken    string
 }
 
 type AuthUser struct {
-	ID           pgtype.UUID
+	ID           int64
 	Email        string
 	PasswordHash string
 	CreatedAt    pgtype.Timestamptz
@@ -24,7 +24,7 @@ type AuthUser struct {
 }
 
 type Profile struct {
-	UserID    pgtype.UUID
+	UserID    int64
 	Firstname pgtype.Text
 	Surname   pgtype.Text
 	CreatedAt pgtype.Timestamptz
@@ -32,29 +32,29 @@ type Profile struct {
 }
 
 type RolePermission struct {
-	WorkspaceID pgtype.UUID
+	WorkspaceID int64
 	Role        string
 	Permission  string
 }
 
 type Routemap struct {
 	ID          int64
-	Path        pgtype.Text
+	Path        string
 	Destination string
 	CreatedAt   pgtype.Timestamptz
-	WorkspaceID pgtype.UUID
+	WorkspaceID int64
 }
 
 type Workspace struct {
-	ID        pgtype.UUID
+	ID        int64
 	Name      string
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
 }
 
 type WorkspaceMember struct {
-	WorkspaceID pgtype.UUID
-	ProfileID   pgtype.UUID
+	WorkspaceID int64
+	ProfileID   int64
 	Role        string
 	CreatedAt   pgtype.Timestamptz
 }

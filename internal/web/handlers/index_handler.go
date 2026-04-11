@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"strings"
 	"unicode"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +20,7 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		routemap, err := h.db.GetRoutemap(r.Context(), pgtype.Text{String: path, Valid: true})
+		routemap, err := h.db.GetRoutemap(r.Context(), path)
 		if err != nil {
 			title := "404"
 			p, _ := h.buildPageData(r, title)
@@ -40,21 +38,7 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := "index"
-	p, session := h.buildPageData(r, title)
-	if session != nil {
-		if profileID, ok := sessionProfileID(session); ok {
-			queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
-			if err == nil {
-				routemaps, queryErr := queries.GetAllRoutemaps(r.Context())
-				if queryErr != nil {
-					_ = rollback()
-				} else {
-					p.Routemaps = routemaps
-					_ = commit()
-				}
-			}
-		}
-	}
+	p, _ := h.buildPageData(r, title)
 	renderTemplate(w, title, p)
 }
 

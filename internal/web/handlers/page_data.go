@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/sai-sy/linkShortener/internal/db"
 )
 
@@ -16,12 +16,7 @@ func (h *Handler) buildPageData(r *http.Request, title string) (*Page, *db.GetAu
 	}
 
 	p.Authenticated = true
-	if session.UserID.Valid {
-		userUUID, err := uuid.FromBytes(session.UserID.Bytes[:])
-		if err == nil {
-			p.ProfileURL = "/profile/" + userUUID.String()
-		}
-	}
+	p.ProfileURL = "/profile/" + strconv.FormatInt(session.UserID, 10)
 
 	if csrfCookie, err := r.Cookie("csrf_token"); err == nil {
 		p.CSRFToken = csrfCookie.Value
@@ -30,15 +25,10 @@ func (h *Handler) buildPageData(r *http.Request, title string) (*Page, *db.GetAu
 	return p, &session
 }
 
-func sessionProfileID(session *db.GetAuthSessionByTokenRow) (uuid.UUID, bool) {
-	if session == nil || !session.UserID.Valid {
-		return uuid.UUID{}, false
+func sessionProfileID(session *db.GetAuthSessionByTokenRow) (int64, bool) {
+	if session == nil {
+		return 0, false
 	}
 
-	profileID, err := uuid.FromBytes(session.UserID.Bytes[:])
-	if err != nil {
-		return uuid.UUID{}, false
-	}
-
-	return profileID, true
+	return session.UserID, true
 }

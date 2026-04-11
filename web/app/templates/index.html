@@ -2,6 +2,7 @@
   <h1>Welcome to the home page</h1>
   {{if .Authenticated}}
     <p>You are authenticated.</p>
+    <p>Check out your shortened links: <a href="/routemap">My Routemaps</a></p>
     <h2>Create Routemap</h2>
     <form method="post" action="/routemap">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -10,40 +11,6 @@
 
       <button type="submit">Create</button>
     </form>
-    <h2>My Routemaps</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Workspace</th>
-          <th>Path</th>
-          <th>Destination</th>
-          <th>Created</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .Routemaps}}
-          <tr>
-            <td>{{.ID}}</td>
-            <td>{{.WorkspaceID}}</td>
-            <td>{{.Path.String}}</td>
-            <td>
-              <form method="post" action="/routemap/update">
-                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                <input type="hidden" name="id" value="{{.ID}}">
-                <input type="text" name="destination" value="{{.Destination}}" required>
-                <button type="submit">Update</button>
-              </form>
-            </td>
-            <td>{{.CreatedAt.Time}}</td>
-          </tr>
-        {{else}}
-          <tr>
-            <td colspan="5">No routemaps found.</td>
-          </tr>
-        {{end}}
-      </tbody>
-    </table>
   {{else}}
     <p>You are not authenticated.</p>
   {{end}}

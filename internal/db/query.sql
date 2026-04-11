@@ -1,6 +1,18 @@
 -- name: GetAllRoutemaps :many
 SELECT * FROM public.routemap;
 
+-- name: GetRoutemapsPage :many
+SELECT r.id,
+       r.path,
+       r.destination,
+       r.workspace_id,
+       w.name AS workspace_name,
+       r.created_at
+FROM public.routemap r
+JOIN public.workspace w ON w.id = r.workspace_id
+ORDER BY r.id DESC
+LIMIT $1 OFFSET $2;
+
 -- name: InsertRoutemap :exec
 INSERT INTO public.routemap (destination, workspace_id)
 VALUES ($1, $2);
@@ -17,8 +29,8 @@ SET destination = $2
 WHERE id = $1;
 
 -- name: CreateAuthUser :one
-INSERT INTO auth.users (id, email, password_hash)
-VALUES ($1, $2, $3)
+INSERT INTO auth.users (email, password_hash)
+VALUES ($1, $2)
 RETURNING id, email, password_hash, created_at, updated_at;
 
 -- name: CreateAuthSession :exec

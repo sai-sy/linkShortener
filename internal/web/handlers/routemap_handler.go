@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -33,6 +34,7 @@ func (h *Handler) CreateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 
 	queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
 	if err != nil {
+		log.Printf("create routemap: start transaction failed: %v", err)
 		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
 		return
 	}
@@ -54,6 +56,7 @@ func (h *Handler) CreateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := commit(); err != nil {
+		log.Printf("create routemap: commit failed: %v", err)
 		http.Error(w, "failed to commit", http.StatusInternalServerError)
 		return
 	}

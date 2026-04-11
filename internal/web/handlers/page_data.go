@@ -25,3 +25,16 @@ func (h *Handler) buildPageData(r *http.Request, title string) (*Page, *db.GetAu
 
 	return p, &session
 }
+
+func sessionProfileID(session *db.GetAuthSessionByTokenRow) (uuid.UUID, bool) {
+	if session == nil || !session.UserID.Valid {
+		return uuid.UUID{}, false
+	}
+
+	profileID, err := uuid.FromBytes(session.UserID.Bytes[:])
+	if err != nil {
+		return uuid.UUID{}, false
+	}
+
+	return profileID, true
+}

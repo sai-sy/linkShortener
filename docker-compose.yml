@@ -1,7 +1,6 @@
 services:
   db:
-    image: postgres:17
-    container_name: linksh-db
+    image: postgres:18
     restart: unless-stopped
     ports:
       - "${POSTGRES_PORT}:5432"
@@ -10,12 +9,11 @@ services:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql
       - ./init:/docker-entrypoint-initdb.d
 
   migrate:
     image: migrate/migrate
-    container_name: linksh-migrate
     entrypoint:
       - migrate
       - -path=/migrations

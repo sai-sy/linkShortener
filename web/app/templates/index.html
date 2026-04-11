@@ -2,6 +2,31 @@
   <h1>Welcome to the home page</h1>
   {{if .Authenticated}}
     <p>You are authenticated.</p>
+    <h2>My Routemaps</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Path</th>
+          <th>Destination</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Routemaps}}
+          <tr>
+            <td>{{.ID}}</td>
+            <td>{{.Path}}</td>
+            <td>{{.Destination}}</td>
+            <td>{{.CreatedAt.Time}}</td>
+          </tr>
+        {{else}}
+          <tr>
+            <td colspan="4">No routemaps found.</td>
+          </tr>
+        {{end}}
+      </tbody>
+    </table>
   {{else}}
     <p>You are not authenticated.</p>
   {{end}}

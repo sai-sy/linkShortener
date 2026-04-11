@@ -11,6 +11,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "invalid form", http.StatusBadRequest)
 			return
 		}
+		firstname := r.FormValue("firstname")
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 		confirmPassword := r.FormValue("confirm_password")
@@ -19,7 +20,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, err := h.auth.Register(r.Context(), w, email, password)
+		user, err := h.auth.Register(r.Context(), w, email, password, firstname)
 		if err != nil {
 			fmt.Printf("register error: %v\n", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)

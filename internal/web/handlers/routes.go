@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/sai-sy/linkShortener/internal/db"
 	"github.com/sai-sy/linkShortener/internal/service/auth"
 )
 
 type Handler struct {
 	auth *auth.Service
+	db   *db.Queries
+	conn *pgx.Conn
 }
 
 type Route struct {
@@ -17,8 +20,12 @@ type Route struct {
 	Handler http.HandlerFunc
 }
 
-func NewHandler(db *db.Queries) *Handler {
-	return &Handler{auth: auth.NewService(db)}
+func NewHandler(db *db.Queries, conn *pgx.Conn) *Handler {
+	return &Handler{
+		auth: auth.NewService(db),
+		db:   db,
+		conn: conn,
+	}
 }
 
 func (h *Handler) PrivateRoutes() []Route {

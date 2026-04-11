@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 
+	"github.com/sai-sy/linkShortener/internal/db"
 	"github.com/sai-sy/linkShortener/web/app/templates"
 )
 
@@ -14,6 +15,7 @@ type Page struct {
 	Body          []byte
 	Authenticated bool
 	ProfileURL    string
+	Routemaps     []db.Routemap
 }
 
 type contextKey string

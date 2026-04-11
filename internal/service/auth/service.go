@@ -46,8 +46,9 @@ func (s *Service) createSessionToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(bytes), nil
 }
 
-func (s *Service) Register(ctx context.Context, w http.ResponseWriter, email, password string) (db.AuthUser, error) {
+func (s *Service) Register(ctx context.Context, w http.ResponseWriter, email, password, firstname string) (db.AuthUser, error) {
 	trimmedEmail := strings.TrimSpace(strings.ToLower(email))
+	trimmedFirstname := strings.TrimSpace(firstname)
 	if trimmedEmail == "" || password == "" {
 		return db.AuthUser{}, errors.New("email and password required")
 	}
@@ -73,12 +74,69 @@ func (s *Service) Register(ctx context.Context, w http.ResponseWriter, email, pa
 		return db.AuthUser{}, err
 	}
 
+	profileFirstname := pgtype.Text{Valid: false}
+	if trimmedFirstname != "" {
+		profileFirstname = pgtype.Text{String: trimmedFirstname, Valid: true}
+	}
+
 	if _, err := s.db.CreateProfile(ctx, db.CreateProfileParams{
 		UserID:    user.ID,
-		Firstname: pgtype.Text{Valid: false},
+		Firstname: profileFirstname,
 		Surname:   pgtype.Text{Valid: false},
 	}); err != nil {
 		return db.AuthUser{}, err
+	}
+
+	workspaceName := trimmedFirstname
+	if workspaceName == "" {
+		workspaceName = trimmedEmail
+	}
+	workspaceName = workspaceName + "'s Workspace"
+
+	workspace, err := s.db.CreateWorkspace(ctx, workspaceName)
+	if err != nil {
+		return db.AuthUser{}, err
+	}
+
+	if err := s.db.CreateWorkspaceMember(ctx, db.CreateWorkspaceMemberParams{
+		WorkspaceID: workspace.ID,
+		ProfileID:   user.ID,
+		Role:        "owner",
+	}); err != nil {
+		return db.AuthUser{}, err
+	}
+
+	ownerPermissions := []string{
+		"workspace:read",
+		"workspace:update",
+		"routemap:create",
+		"routemap:read",
+		"routemap:update",
+		"routemap:delete",
+	}
+	memberPermissions := []string{
+		"workspace:read",
+		"routemap:read",
+	}
+
+	for _, permission := range ownerPermissions {
+		if err := s.db.CreateRolePermission(ctx, db.CreateRolePermissionParams{
+			WorkspaceID: workspace.ID,
+			Role:        "owner",
+			Permission:  permission,
+		}); err != nil {
+			return db.AuthUser{}, err
+		}
+	}
+
+	for _, permission := range memberPermissions {
+		if err := s.db.CreateRolePermission(ctx, db.CreateRolePermissionParams{
+			WorkspaceID: workspace.ID,
+			Role:        "member",
+			Permission:  permission,
+		}); err != nil {
+			return db.AuthUser{}, err
+		}
 	}
 
 	sessionToken, err := s.createSessionToken()

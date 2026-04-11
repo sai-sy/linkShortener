@@ -23,7 +23,7 @@ func main() {
 	}
 	defer conn.Close(ctx)
 	database := db.New(conn)
-	server := httpServer.NewHTTPServer(":8080", database)
+	server := httpServer.NewHTTPServer(":8080", conn, database)
 	if err := server.Run(); err != nil {
 		fmt.Println("server error:", err)
 		os.Exit(1)

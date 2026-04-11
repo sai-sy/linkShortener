@@ -14,6 +14,20 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := "index"
-	p, _ := h.buildPageData(r, title)
+	p, session := h.buildPageData(r, title)
+	if session != nil {
+		if profileID, ok := sessionProfileID(session); ok {
+			queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
+			if err == nil {
+				routemaps, queryErr := queries.GetAllRoutemaps(r.Context())
+				if queryErr != nil {
+					_ = rollback()
+				} else {
+					p.Routemaps = routemaps
+					_ = commit()
+				}
+			}
+		}
+	}
 	renderTemplate(w, title, p)
 }

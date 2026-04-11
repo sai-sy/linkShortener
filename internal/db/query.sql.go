@@ -77,8 +77,58 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (P
 	return i, err
 }
 
+const createRolePermission = `-- name: CreateRolePermission :exec
+INSERT INTO public.role_permission (workspace_id, role, permission)
+VALUES ($1, $2, $3)
+`
+
+type CreateRolePermissionParams struct {
+	WorkspaceID pgtype.UUID
+	Role        string
+	Permission  string
+}
+
+func (q *Queries) CreateRolePermission(ctx context.Context, arg CreateRolePermissionParams) error {
+	_, err := q.db.Exec(ctx, createRolePermission, arg.WorkspaceID, arg.Role, arg.Permission)
+	return err
+}
+
+const createWorkspace = `-- name: CreateWorkspace :one
+INSERT INTO public.workspace (name)
+VALUES ($1)
+RETURNING id, name, created_at, updated_at
+`
+
+func (q *Queries) CreateWorkspace(ctx context.Context, name string) (Workspace, error) {
+	row := q.db.QueryRow(ctx, createWorkspace, name)
+	var i Workspace
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createWorkspaceMember = `-- name: CreateWorkspaceMember :exec
+INSERT INTO public.workspace_member (workspace_id, profile_id, role)
+VALUES ($1, $2, $3)
+`
+
+type CreateWorkspaceMemberParams struct {
+	WorkspaceID pgtype.UUID
+	ProfileID   pgtype.UUID
+	Role        string
+}
+
+func (q *Queries) CreateWorkspaceMember(ctx context.Context, arg CreateWorkspaceMemberParams) error {
+	_, err := q.db.Exec(ctx, createWorkspaceMember, arg.WorkspaceID, arg.ProfileID, arg.Role)
+	return err
+}
+
 const getAllRoutemaps = `-- name: GetAllRoutemaps :many
-SELECT id, path, destination, created_at FROM public.routemap
+SELECT id, path, destination, created_at, workspace_id FROM public.routemap
 `
 
 func (q *Queries) GetAllRoutemaps(ctx context.Context) ([]Routemap, error) {
@@ -95,6 +145,7 @@ func (q *Queries) GetAllRoutemaps(ctx context.Context) ([]Routemap, error) {
 			&i.Path,
 			&i.Destination,
 			&i.CreatedAt,
+			&i.WorkspaceID,
 		); err != nil {
 			return nil, err
 		}
@@ -153,34 +204,66 @@ func (q *Queries) GetAuthUserByEmail(ctx context.Context, email string) (AuthUse
 }
 
 const getRoutemap = `-- name: GetRoutemap :one
-SELECT id, path, destination, created_at
+SELECT id, path, destination, workspace_id, created_at
 FROM public.routemap
 WHERE path = $1
 LIMIT 1
 `
 
-func (q *Queries) GetRoutemap(ctx context.Context, path string) (Routemap, error) {
+type GetRoutemapRow struct {
+	ID          int64
+	Path        string
+	Destination string
+	WorkspaceID pgtype.UUID
+	CreatedAt   pgtype.Timestamptz
+}
+
+func (q *Queries) GetRoutemap(ctx context.Context, path string) (GetRoutemapRow, error) {
 	row := q.db.QueryRow(ctx, getRoutemap, path)
-	var i Routemap
+	var i GetRoutemapRow
 	err := row.Scan(
 		&i.ID,
 		&i.Path,
 		&i.Destination,
+		&i.WorkspaceID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
+const getWorkspaceByProfile = `-- name: GetWorkspaceByProfile :one
+SELECT w.id, w.name, w.created_at, w.updated_at
+FROM public.workspace w
+JOIN public.workspace_member wm ON wm.workspace_id = w.id
+WHERE wm.profile_id = $1
+ORDER BY w.created_at
+LIMIT 1
+`
+
+func (q *Queries) GetWorkspaceByProfile(ctx context.Context, profileID pgtype.UUID) (Workspace, error) {
+	row := q.db.QueryRow(ctx, getWorkspaceByProfile, profileID)
+	var i Workspace
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const insertRoutemap = `-- name: InsertRoutemap :exec
-INSERT INTO public.routemap (path, destination) VALUES ($1, $2)
+INSERT INTO public.routemap (path, destination, workspace_id)
+VALUES ($1, $2, $3)
 `
 
 type InsertRoutemapParams struct {
 	Path        string
 	Destination string
+	WorkspaceID pgtype.UUID
 }
 
 func (q *Queries) InsertRoutemap(ctx context.Context, arg InsertRoutemapParams) error {
-	_, err := q.db.Exec(ctx, insertRoutemap, arg.Path, arg.Destination)
+	_, err := q.db.Exec(ctx, insertRoutemap, arg.Path, arg.Destination, arg.WorkspaceID)
 	return err
 }

@@ -31,9 +31,30 @@ type Profile struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
+type RolePermission struct {
+	WorkspaceID pgtype.UUID
+	Role        string
+	Permission  string
+}
+
 type Routemap struct {
 	ID          int64
 	Path        string
 	Destination string
+	CreatedAt   pgtype.Timestamptz
+	WorkspaceID pgtype.UUID
+}
+
+type Workspace struct {
+	ID        pgtype.UUID
+	Name      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type WorkspaceMember struct {
+	WorkspaceID pgtype.UUID
+	ProfileID   pgtype.UUID
+	Role        string
 	CreatedAt   pgtype.Timestamptz
 }

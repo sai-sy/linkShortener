@@ -202,6 +202,42 @@ func (q *Queries) GetAuthUserByEmail(ctx context.Context, email string) (AuthUse
 	return i, err
 }
 
+const getProfileByID = `-- name: GetProfileByID :one
+SELECT p.user_id,
+       p.firstname,
+       p.surname,
+       u.email,
+       p.created_at,
+       p.updated_at
+FROM public.profile p
+JOIN auth.users u ON u.id = p.user_id
+WHERE p.user_id = $1
+LIMIT 1
+`
+
+type GetProfileByIDRow struct {
+	UserID    int64
+	Firstname pgtype.Text
+	Surname   pgtype.Text
+	Email     string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) GetProfileByID(ctx context.Context, userID int64) (GetProfileByIDRow, error) {
+	row := q.db.QueryRow(ctx, getProfileByID, userID)
+	var i GetProfileByIDRow
+	err := row.Scan(
+		&i.UserID,
+		&i.Firstname,
+		&i.Surname,
+		&i.Email,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getRoutemap = `-- name: GetRoutemap :one
 SELECT id, path, destination, workspace_id, created_at
 FROM public.routemap
@@ -303,6 +339,43 @@ func (q *Queries) GetWorkspaceByProfile(ctx context.Context, profileID int64) (W
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getWorkspacesPage = `-- name: GetWorkspacesPage :many
+SELECT id, name, created_at, updated_at
+FROM public.workspace
+ORDER BY id DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetWorkspacesPageParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetWorkspacesPage(ctx context.Context, arg GetWorkspacesPageParams) ([]Workspace, error) {
+	rows, err := q.db.Query(ctx, getWorkspacesPage, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Workspace
+	for rows.Next() {
+		var i Workspace
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const insertRoutemap = `-- name: InsertRoutemap :exec

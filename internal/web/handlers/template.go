@@ -18,6 +18,9 @@ type Page struct {
 	Routemaps     []db.GetRoutemapsPageRow
 	CSRFToken     string
 	Page          int
+	Email         string
+	Firstname     string
+	Workspaces    []db.Workspace
 }
 
 type contextKey string

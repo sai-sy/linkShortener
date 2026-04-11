@@ -42,5 +42,16 @@ func (h *Handler) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	profile, err := h.db.GetProfileByID(r.Context(), profileID)
+	if err != nil {
+		http.Error(w, "failed to load profile", http.StatusInternalServerError)
+		return
+	}
+
+	if profile.Firstname.Valid {
+		p.Firstname = profile.Firstname.String
+	}
+	p.Email = profile.Email
+
 	renderTemplate(w, "profile", p)
 }

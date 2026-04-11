@@ -74,3 +74,21 @@ JOIN public.workspace_member wm ON wm.workspace_id = w.id
 WHERE wm.profile_id = $1
 ORDER BY w.created_at
 LIMIT 1;
+
+-- name: GetWorkspacesPage :many
+SELECT id, name, created_at, updated_at
+FROM public.workspace
+ORDER BY id DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetProfileByID :one
+SELECT p.user_id,
+       p.firstname,
+       p.surname,
+       u.email,
+       p.created_at,
+       p.updated_at
+FROM public.profile p
+JOIN auth.users u ON u.id = p.user_id
+WHERE p.user_id = $1
+LIMIT 1;

@@ -1,4 +1,9 @@
 {{define "content"}}
   <h1>Profile</h1>
-  <p>Welcome to your profile.</p>
+  {{if .Firstname}}
+    <p>First name: {{.Firstname}}</p>
+  {{else}}
+    <p>First name: Not set</p>
+  {{end}}
+  <p>Email: {{.Email}}</p>
 {{end}}

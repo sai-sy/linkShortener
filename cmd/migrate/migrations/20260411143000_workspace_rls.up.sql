@@ -70,7 +70,7 @@ CREATE INDEX IF NOT EXISTS routemap_workspace_id_idx
 
 CREATE OR REPLACE FUNCTION public.authorize(
   profile_id uuid,
-  workspace_id uuid,
+  workspace_id_param uuid,
   permission text
 ) RETURNS boolean
 LANGUAGE sql
@@ -83,7 +83,7 @@ AS $$
       ON rp.workspace_id = wm.workspace_id
      AND rp.role = wm.role
     WHERE wm.profile_id = profile_id
-      AND wm.workspace_id = workspace_id
+      AND wm.workspace_id = workspace_id_param
       AND rp.permission = permission
   );
 $$;

@@ -4,8 +4,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/sai-sy/linkShortener/internal/db"
 )
 
 func (h *Handler) ListWorkspaceHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,34 +19,17 @@ func (h *Handler) ListWorkspaceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
-	if err != nil {
-		log.Printf("list workspace: start transaction failed: %v", err)
-		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
-		return
-	}
-
 	page := 1
 	if pageParam := r.URL.Query().Get("page"); pageParam != "" {
 		if parsed, err := strconv.Atoi(pageParam); err == nil && parsed > 0 {
 			page = parsed
 		}
 	}
-	limit := int32(25)
-	offset := int32((page - 1) * 25)
 
-	workspaces, err := queries.GetWorkspacesPage(r.Context(), db.GetWorkspacesPageParams{
-		Limit:  limit,
-		Offset: offset,
-	})
+	workspaces, err := h.workspaceSvc.List(r.Context(), profileID, page)
 	if err != nil {
-		_ = rollback()
+		log.Printf("list workspace: %v", err)
 		http.Error(w, "failed to load workspaces", http.StatusInternalServerError)
-		return
-	}
-	if err := commit(); err != nil {
-		log.Printf("list workspace: commit failed: %v", err)
-		http.Error(w, "failed to commit", http.StatusInternalServerError)
 		return
 	}
 

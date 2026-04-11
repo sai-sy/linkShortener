@@ -42,7 +42,7 @@ func (h *Handler) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := h.db.GetProfileByID(r.Context(), profileID)
+	profile, err := h.profileSvc.GetByID(r.Context(), profileID)
 	if err != nil {
 		http.Error(w, "failed to load profile", http.StatusInternalServerError)
 		return

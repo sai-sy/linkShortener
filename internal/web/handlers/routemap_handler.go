@@ -4,9 +4,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
-
-	"github.com/sai-sy/linkShortener/internal/db"
 )
 
 func (h *Handler) CreateRoutemapHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,10 +23,6 @@ func (h *Handler) CreateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !hasScheme(destination) {
-		destination = "https://" + destination
-	}
-
 	_, session := h.buildPageData(r, "index")
 	profileID, ok := sessionProfileID(session)
 	if !ok {
@@ -37,32 +30,9 @@ func (h *Handler) CreateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
-	if err != nil {
-		log.Printf("create routemap: start transaction failed: %v", err)
-		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
-		return
-	}
-
-	workspace, err := queries.GetWorkspaceByProfile(r.Context(), profileID)
-	if err != nil {
-		_ = rollback()
-		http.Error(w, "failed to load workspace", http.StatusInternalServerError)
-		return
-	}
-
-	if err := queries.InsertRoutemap(r.Context(), db.InsertRoutemapParams{
-		Destination: destination,
-		WorkspaceID: workspace.ID,
-	}); err != nil {
-		_ = rollback()
+	if err := h.routemapSvc.Create(r.Context(), profileID, destination); err != nil {
+		log.Printf("create routemap: %v", err)
 		http.Error(w, "failed to create routemap", http.StatusInternalServerError)
-		return
-	}
-
-	if err := commit(); err != nil {
-		log.Printf("create routemap: commit failed: %v", err)
-		http.Error(w, "failed to commit", http.StatusInternalServerError)
 		return
 	}
 
@@ -93,10 +63,6 @@ func (h *Handler) UpdateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !hasScheme(destination) {
-		destination = "https://" + destination
-	}
-
 	_, session := h.buildPageData(r, "index")
 	profileID, ok := sessionProfileID(session)
 	if !ok {
@@ -104,25 +70,9 @@ func (h *Handler) UpdateRoutemapHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
-	if err != nil {
-		log.Printf("update routemap: start transaction failed: %v", err)
-		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
-		return
-	}
-
-	if err := queries.UpdateRoutemapDestination(r.Context(), db.UpdateRoutemapDestinationParams{
-		ID:          id,
-		Destination: destination,
-	}); err != nil {
-		_ = rollback()
+	if err := h.routemapSvc.UpdateDestination(r.Context(), profileID, id, destination); err != nil {
+		log.Printf("update routemap: %v", err)
 		http.Error(w, "failed to update routemap", http.StatusInternalServerError)
-		return
-	}
-
-	if err := commit(); err != nil {
-		log.Printf("update routemap: commit failed: %v", err)
-		http.Error(w, "failed to commit", http.StatusInternalServerError)
 		return
 	}
 
@@ -142,42 +92,21 @@ func (h *Handler) ListRoutemapHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries, commit, rollback, err := h.withProfileContext(r.Context(), profileID)
-	if err != nil {
-		log.Printf("list routemap: start transaction failed: %v", err)
-		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
-		return
-	}
-
 	page := 1
 	if pageParam := r.URL.Query().Get("page"); pageParam != "" {
 		if parsed, err := strconv.Atoi(pageParam); err == nil && parsed > 0 {
 			page = parsed
 		}
 	}
-	limit := int32(25)
-	offset := int32((page - 1) * 25)
 
-	routemaps, err := queries.GetRoutemapsPage(r.Context(), db.GetRoutemapsPageParams{
-		Limit:  limit,
-		Offset: offset,
-	})
+	routemaps, err := h.routemapSvc.List(r.Context(), profileID, page)
 	if err != nil {
-		_ = rollback()
+		log.Printf("list routemap: %v", err)
 		http.Error(w, "failed to load routemaps", http.StatusInternalServerError)
-		return
-	}
-	if err := commit(); err != nil {
-		log.Printf("list routemap: commit failed: %v", err)
-		http.Error(w, "failed to commit", http.StatusInternalServerError)
 		return
 	}
 
 	p.Routemaps = routemaps
 	p.Page = page
 	renderTemplate(w, "routemap", p)
-}
-
-func hasScheme(value string) bool {
-	return strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://")
 }

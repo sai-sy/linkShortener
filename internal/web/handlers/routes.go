@@ -7,12 +7,18 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/sai-sy/linkShortener/internal/db"
 	"github.com/sai-sy/linkShortener/internal/service/auth"
+	"github.com/sai-sy/linkShortener/internal/service/profile"
+	"github.com/sai-sy/linkShortener/internal/service/rls"
+	"github.com/sai-sy/linkShortener/internal/service/routemap"
+	"github.com/sai-sy/linkShortener/internal/service/workspace"
 )
 
 type Handler struct {
-	auth *auth.Service
-	db   *db.Queries
-	conn *pgx.Conn
+	auth         *auth.Service
+	db           *db.Queries
+	routemapSvc  *routemap.Service
+	workspaceSvc *workspace.Service
+	profileSvc   *profile.Service
 }
 
 type Route struct {
@@ -21,10 +27,13 @@ type Route struct {
 }
 
 func NewHandler(db *db.Queries, conn *pgx.Conn) *Handler {
+	rlsSvc := rls.New(db, conn)
 	return &Handler{
-		auth: auth.NewService(db),
-		db:   db,
-		conn: conn,
+		auth:         auth.NewService(db),
+		db:           db,
+		routemapSvc:  routemap.New(rlsSvc),
+		workspaceSvc: workspace.New(rlsSvc),
+		profileSvc:   profile.New(rlsSvc),
 	}
 }
 

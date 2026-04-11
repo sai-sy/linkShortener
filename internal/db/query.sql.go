@@ -266,3 +266,19 @@ func (q *Queries) InsertRoutemap(ctx context.Context, arg InsertRoutemapParams) 
 	_, err := q.db.Exec(ctx, insertRoutemap, arg.Destination, arg.WorkspaceID)
 	return err
 }
+
+const updateRoutemapDestination = `-- name: UpdateRoutemapDestination :exec
+UPDATE public.routemap
+SET destination = $2
+WHERE id = $1
+`
+
+type UpdateRoutemapDestinationParams struct {
+	ID          int64
+	Destination string
+}
+
+func (q *Queries) UpdateRoutemapDestination(ctx context.Context, arg UpdateRoutemapDestinationParams) error {
+	_, err := q.db.Exec(ctx, updateRoutemapDestination, arg.ID, arg.Destination)
+	return err
+}

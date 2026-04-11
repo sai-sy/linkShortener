@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 	"unicode"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -30,7 +31,11 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Redirect(w, r, routemap.Destination, http.StatusFound)
+		destination := routemap.Destination
+		if !strings.HasPrefix(destination, "http://") && !strings.HasPrefix(destination, "https://") {
+			destination = "https://" + destination
+		}
+		http.Redirect(w, r, destination, http.StatusFound)
 		return
 	}
 

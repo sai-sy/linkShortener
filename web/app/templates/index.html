@@ -26,8 +26,15 @@
           <tr>
             <td>{{.ID}}</td>
             <td>{{.WorkspaceID}}</td>
-            <td>{{.Path}}</td>
-            <td>{{.Destination}}</td>
+            <td>{{.Path.String}}</td>
+            <td>
+              <form method="post" action="/routemap/update">
+                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <input type="text" name="destination" value="{{.Destination}}" required>
+                <button type="submit">Update</button>
+              </form>
+            </td>
             <td>{{.CreatedAt.Time}}</td>
           </tr>
         {{else}}

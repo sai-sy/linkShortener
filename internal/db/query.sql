@@ -11,6 +11,11 @@ FROM public.routemap
 WHERE path = $1
 LIMIT 1;
 
+-- name: UpdateRoutemapDestination :exec
+UPDATE public.routemap
+SET destination = $2
+WHERE id = $1;
+
 -- name: CreateAuthUser :one
 INSERT INTO auth.users (id, email, password_hash)
 VALUES ($1, $2, $3)

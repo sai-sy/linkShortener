@@ -212,13 +212,13 @@ LIMIT 1
 
 type GetRoutemapRow struct {
 	ID          int64
-	Path        string
+	Path        pgtype.Text
 	Destination string
 	WorkspaceID pgtype.UUID
 	CreatedAt   pgtype.Timestamptz
 }
 
-func (q *Queries) GetRoutemap(ctx context.Context, path string) (GetRoutemapRow, error) {
+func (q *Queries) GetRoutemap(ctx context.Context, path pgtype.Text) (GetRoutemapRow, error) {
 	row := q.db.QueryRow(ctx, getRoutemap, path)
 	var i GetRoutemapRow
 	err := row.Scan(
@@ -253,17 +253,16 @@ func (q *Queries) GetWorkspaceByProfile(ctx context.Context, profileID pgtype.UU
 }
 
 const insertRoutemap = `-- name: InsertRoutemap :exec
-INSERT INTO public.routemap (path, destination, workspace_id)
-VALUES ($1, $2, $3)
+INSERT INTO public.routemap (destination, workspace_id)
+VALUES ($1, $2)
 `
 
 type InsertRoutemapParams struct {
-	Path        string
 	Destination string
 	WorkspaceID pgtype.UUID
 }
 
 func (q *Queries) InsertRoutemap(ctx context.Context, arg InsertRoutemapParams) error {
-	_, err := q.db.Exec(ctx, insertRoutemap, arg.Path, arg.Destination, arg.WorkspaceID)
+	_, err := q.db.Exec(ctx, insertRoutemap, arg.Destination, arg.WorkspaceID)
 	return err
 }

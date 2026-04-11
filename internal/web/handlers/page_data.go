@@ -23,6 +23,10 @@ func (h *Handler) buildPageData(r *http.Request, title string) (*Page, *db.GetAu
 		}
 	}
 
+	if csrfCookie, err := r.Cookie("csrf_token"); err == nil {
+		p.CSRFToken = csrfCookie.Value
+	}
+
 	return p, &session
 }
 

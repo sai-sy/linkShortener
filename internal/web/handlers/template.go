@@ -16,6 +16,7 @@ type Page struct {
 	Authenticated bool
 	ProfileURL    string
 	Routemaps     []db.Routemap
+	CSRFToken     string
 }
 
 type contextKey string

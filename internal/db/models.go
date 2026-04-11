@@ -39,7 +39,7 @@ type RolePermission struct {
 
 type Routemap struct {
 	ID          int64
-	Path        string
+	Path        pgtype.Text
 	Destination string
 	CreatedAt   pgtype.Timestamptz
 	WorkspaceID pgtype.UUID

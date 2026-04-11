@@ -2,8 +2,8 @@
 SELECT * FROM public.routemap;
 
 -- name: InsertRoutemap :exec
-INSERT INTO public.routemap (path, destination, workspace_id)
-VALUES ($1, $2, $3);
+INSERT INTO public.routemap (destination, workspace_id)
+VALUES ($1, $2);
 
 -- name: GetRoutemap :one
 SELECT id, path, destination, workspace_id, created_at

@@ -27,7 +27,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Printf("register submission: email=%s user_id=%v\n", user.Email, user.ID)
-		http.Redirect(w, r, "/protected", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	if r.Method != http.MethodGet {

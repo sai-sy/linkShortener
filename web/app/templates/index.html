@@ -2,11 +2,20 @@
   <h1>Welcome to the home page</h1>
   {{if .Authenticated}}
     <p>You are authenticated.</p>
+    <h2>Create Routemap</h2>
+    <form method="post" action="/routemap">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <label for="destination">Destination</label>
+      <input type="text" id="destination" name="destination" required>
+
+      <button type="submit">Create</button>
+    </form>
     <h2>My Routemaps</h2>
     <table>
       <thead>
         <tr>
           <th>ID</th>
+          <th>Workspace</th>
           <th>Path</th>
           <th>Destination</th>
           <th>Created</th>
@@ -16,13 +25,14 @@
         {{range .Routemaps}}
           <tr>
             <td>{{.ID}}</td>
+            <td>{{.WorkspaceID}}</td>
             <td>{{.Path}}</td>
             <td>{{.Destination}}</td>
             <td>{{.CreatedAt.Time}}</td>
           </tr>
         {{else}}
           <tr>
-            <td colspan="4">No routemaps found.</td>
+            <td colspan="5">No routemaps found.</td>
           </tr>
         {{end}}
       </tbody>

@@ -34,9 +34,11 @@ func (s *HTTPServer) Run() error {
 	}
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticRoot))))
 
+	// register all public routes
 	publicWebHandler := handlers.NewHandler(s.db, s.conn)
 	publicWebHandler.RegisterRoutes(mux, publicWebHandler.PublicRoutes())
 
+	// register all private routes
 	privateWebHandler := handlers.NewHandler(s.db, s.conn)
 	auth.SetDefaultService(s.db)
 	privateWebMiddleware := middleware.CreateStack(middleware.RequireAuth)

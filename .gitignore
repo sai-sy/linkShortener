@@ -1,5 +1,11 @@
 _**
+
 .env**
 !.env.template**
+
 ./tmp/
+./tmp/**
 ./.tmp/
+./.tmp/**
+
+.DS_Store
